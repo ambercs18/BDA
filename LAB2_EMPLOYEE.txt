@@ -1,0 +1,139 @@
+abdc@ubuntu:~$ cqlsh
+Connected to Test Cluster at 127.0.0.1:9042.
+[cqlsh 5.0.1 | Cassandra 4.0 | CQL spec 3.4.5 | Native protocol v4]
+Use HELP for help.
+cqlsh> create keyspace employee with replication = {'class': 'SimpleStrategy', 'replication_factor':1};
+cqlsh> describe keyspaces;
+
+employee  system_auth         system_schema  system_views         
+system    system_distributed  system_traces  system_virtual_schema
+
+cqlsh> use employee;
+cqlsh:employee> create table emp_info(id int primary key,name text,desg text,date_of_join timestamp,salary float);
+cqlsh:employee> insert into emp_info(id,name,desg,date_of_join,salary) values (100,'ram','manager','2020-03-19',500);
+cqlsh:employee> select * from emp_info;
+
+ id  | date_of_join                    | desg    | name | salary
+-----+---------------------------------+---------+------+--------
+ 100 | 2020-03-19 07:00:00.000000+0000 | manager |  ram |    500
+
+(1 rows)
+cqlsh:employee> insert into emp_info(id,name,desg,date_of_join,salary) values (110,'shyam','junior manager','2020-09-19',50);
+cqlsh:employee> insert into emp_info(id,name,desg,date_of_join,salary) values (120,'murli','junior engineer','2020-09-19',5000);
+cqlsh:employee> insert into emp_info(id,name,desg,date_of_join,salary) values (121,'sunil','senior engineer','2020-08-30',9000);
+cqlsh:employee> insert into emp_info(id,name,desg,date_of_join,salary) values (99,'john','senior tester','2021-01-30',90000);
+cqlsh:employee> select * from emp_info;
+
+ id  | date_of_join                    | desg            | name  | salary
+-----+---------------------------------+-----------------+-------+--------
+ 110 | 2020-09-19 07:00:00.000000+0000 |  junior manager | shyam |     50
+ 120 | 2020-09-19 07:00:00.000000+0000 | junior engineer | murli |   5000
+  99 | 2021-01-30 08:00:00.000000+0000 |   senior tester |  john |  90000
+ 121 | 2020-08-30 07:00:00.000000+0000 | senior engineer | sunil |   9000
+ 100 | 2020-03-19 07:00:00.000000+0000 |         manager |   ram |    500
+
+(5 rows)
+cqlsh:employee> alter table emp_info add dept text;
+cqlsh:employee> select * from emp_info;
+
+ id  | date_of_join                    | dept | desg            | name  | salary
+-----+---------------------------------+------+-----------------+-------+--------
+ 110 | 2020-09-19 07:00:00.000000+0000 | null |  junior manager | shyam |     50
+ 120 | 2020-09-19 07:00:00.000000+0000 | null | junior engineer | murli |   5000
+  99 | 2021-01-30 08:00:00.000000+0000 | null |   senior tester |  john |  90000
+ 121 | 2020-08-30 07:00:00.000000+0000 | null | senior engineer | sunil |   9000
+ 100 | 2020-03-19 07:00:00.000000+0000 | null |         manager |   ram |    500
+
+(5 rows)
+cqlsh:employee> update table emp_info set dept='main' where id=110;
+SyntaxException: line 1:7 no viable alternative at input 'table' (update [table]...)
+cqlsh:employee> update emp_info set dept='main' where id=110;
+cqlsh:employee> update emp_info set dept='main' where id=120;
+cqlsh:employee> update emp_info set dept='testing' where id=99;
+cqlsh:employee> update emp_info set dept='testing' where id=121;
+cqlsh:employee> update emp_info set dept='hr' where id=100;
+cqlsh:employee> select * from emp_info;
+
+ id  | date_of_join                    | dept    | desg            | name  | salary
+-----+---------------------------------+---------+-----------------+-------+--------
+ 110 | 2020-09-19 07:00:00.000000+0000 |    main |  junior manager | shyam |     50
+ 120 | 2020-09-19 07:00:00.000000+0000 |    main | junior engineer | murli |   5000
+  99 | 2021-01-30 08:00:00.000000+0000 | testing |   senior tester |  john |  90000
+ 121 | 2020-08-30 07:00:00.000000+0000 | testing | senior engineer | sunil |   9000
+ 100 | 2020-03-19 07:00:00.000000+0000 |      hr |         manager |   ram |    500
+
+(5 rows)
+cqlsh:employee> update emp_info set name = 'vinay' and dept = 'security';
+SyntaxException: line 1:35 mismatched input 'and' expecting K_WHERE (...emp_info set name = 'vinay' [and] dept...)
+cqlsh:employee> update emp_info set name = 'vinay' and dept = 'security' where id =121;
+SyntaxException: line 1:35 mismatched input 'and' expecting K_WHERE (...emp_info set name = 'vinay' [and] dept...)
+cqlsh:employee> update emp_info set name = 'vinay',dept = 'security' where id =121;
+cqlsh:employee> select * from emp_info;
+
+ id  | date_of_join                    | dept     | desg            | name  | salary
+-----+---------------------------------+----------+-----------------+-------+--------
+ 110 | 2020-09-19 07:00:00.000000+0000 |     main |  junior manager | shyam |     50
+ 120 | 2020-09-19 07:00:00.000000+0000 |     main | junior engineer | murli |   5000
+  99 | 2021-01-30 08:00:00.000000+0000 |  testing |   senior tester |  john |  90000
+ 121 | 2020-08-30 07:00:00.000000+0000 | security | senior engineer | vinay |   9000
+ 100 | 2020-03-19 07:00:00.000000+0000 |       hr |         manager |   ram |    500
+
+(5 rows)
+cqlsh:employee> select * from emp_info order by salary;
+InvalidRequest: Error from server: code=2200 [Invalid query] message="ORDER BY is only supported when the partition key is restricted by an EQ or an IN."
+cqlsh:employee> create index on emp_info(salary);
+cqlsh:employee> select * from emp_info order by salary;
+InvalidRequest: Error from server: code=2200 [Invalid query] message="ORDER BY is only supported when the partition key is restricted by an EQ or an IN."
+cqlsh:employee> select * from emp_info order by salary,id;
+InvalidRequest: Error from server: code=2200 [Invalid query] message="ORDER BY is only supported when the partition key is restricted by an EQ or an IN."
+cqlsh:employee> select * from emp_info where id =110 order by salary;
+InvalidRequest: Error from server: code=2200 [Invalid query] message="Order by is currently only supported on the clustered columns of the PRIMARY KEY, got salary"
+cqlsh:employee> alter emp_info add projects set;
+SyntaxException: line 1:6 no viable alternative at input 'emp_info' ([alter] emp_info...)
+cqlsh:employee> alter table emp_info add projects set;
+SyntaxException: line 1:37 mismatched input ';' expecting '<' (... table emp_info add projects set[;])
+cqlsh:employee> alter table emp_info add projects set<text>;
+cqlsh:employee> update emp_info set projects={'networking','big data'} where id=120;
+cqlsh:employee> update emp_info set projects={'python','java'} where id=99;
+cqlsh:employee> update emp_info set projects={'website','application'} where id=121;
+cqlsh:employee> update emp_info set projects={'networking'} where id=100;
+cqlsh:employee> select * from emp_info;
+
+ id  | date_of_join                    | dept     | desg            | name  | projects                   | salary
+-----+---------------------------------+----------+-----------------+-------+----------------------------+--------
+ 110 | 2020-09-19 07:00:00.000000+0000 |     main |  junior manager | shyam |                       null |     50
+ 120 | 2020-09-19 07:00:00.000000+0000 |     main | junior engineer | murli | {'big data', 'networking'} |   5000
+  99 | 2021-01-30 08:00:00.000000+0000 |  testing |   senior tester |  john |         {'java', 'python'} |  90000
+ 121 | 2020-08-30 07:00:00.000000+0000 | security | senior engineer | vinay | {'application', 'website'} |   9000
+ 100 | 2020-03-19 07:00:00.000000+0000 |       hr |         manager |   ram |             {'networking'} |    500
+
+(5 rows)
+cqlsh:employee> select * form emp_info TTL 15;
+SyntaxException: line 1:9 mismatched input 'form' expecting K_FROM (select * [form]...)
+cqlsh:employee> select * from emp_info TTL 15;
+SyntaxException: line 1:23 no viable alternative at input 'TTL' (select * from [emp_info] TTL...)
+cqlsh:employee> insert into emp_info (id,date_of_join,dept,desg,name,projects,salary) values (88,'2021-02-28','control','head','abc',{'security'},100);
+cqlsh:employee> insert into emp_info (id,date_of_join,dept,desg,name,projects,salary) values (8,'2021-02-28','control','head','xyz',{'security'},100) using TTL 15;
+cqlsh:employee> select * from emp_info;
+
+ id  | date_of_join                    | dept     | desg            | name  | projects                   | salary
+-----+---------------------------------+----------+-----------------+-------+----------------------------+--------
+ 110 | 2020-09-19 07:00:00.000000+0000 |     main |  junior manager | shyam |                       null |     50
+ 120 | 2020-09-19 07:00:00.000000+0000 |     main | junior engineer | murli | {'big data', 'networking'} |   5000
+  88 | 2021-02-28 08:00:00.000000+0000 |  control |            head |   abc |               {'security'} |    100
+  99 | 2021-01-30 08:00:00.000000+0000 |  testing |   senior tester |  john |         {'java', 'python'} |  90000
+   8 | 2021-02-28 08:00:00.000000+0000 |  control |            head |   xyz |               {'security'} |    100
+ 121 | 2020-08-30 07:00:00.000000+0000 | security | senior engineer | vinay | {'application', 'website'} |   9000
+ 100 | 2020-03-19 07:00:00.000000+0000 |       hr |         manager |   ram |             {'networking'} |    500
+
+(7 rows)
+cqlsh:employee> select * from emp_info;
+
+ id  | date_of_join                    | dept     | desg            | name  | projects                   | salary
+-----+---------------------------------+----------+-----------------+-------+----------------------------+--------
+ 110 | 2020-09-19 07:00:00.000000+0000 |     main |  junior manager | shyam |                       null |     50
+ 120 | 2020-09-19 07:00:00.000000+0000 |     main | junior engineer | murli | {'big data', 'networking'} |   5000
+  88 | 2021-02-28 08:00:00.000000+0000 |  control |            head |   abc |               {'security'} |    100
+  99 | 2021-01-30 08:00:00.000000+0000 |  testing |   senior tester |  john |         {'java', 'python'} |  90000
+ 121 | 2020-08-30 07:00:00.000000+0000 | security | senior engineer | vinay | {'application', 'website'} |   9000
+ 100 | 2020-03-19 07:00:00.000000+0000 |       hr |         manager |   ram |             {'networking'} |    500

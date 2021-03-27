@@ -1,0 +1,75 @@
+abdc@ubuntu:~$ cqlsh
+Connected to Test Cluster at 127.0.0.1:9042.
+[cqlsh 5.0.1 | Cassandra 4.0 | CQL spec 3.4.5 | Native protocol v4]
+Use HELP for help.
+cqlsh> create keyspace library with replication = {'class': 'SimpleStrategy', 'replication_factor':1};
+cqlsh> create table lib_info(st_id int primary key,cnt_val counter,name st_text,book_name text,book_id int,date_of_issue timestamp);
+InvalidRequest: Error from server: code=2200 [Invalid query] message="No keyspace has been specified. USE a keyspace, or explicitly specify keyspace.tablename"
+cqlsh> use library;
+cqlsh:library> create table lib_info(st_id int primary key,cnt_val counter,name st_text,book_name text,book_id int,date_of_issue timestamp);
+InvalidRequest: Error from server: code=2200 [Invalid query] message="Unknown type library.st_text"
+cqlsh:library> create table lib_info(st_id int primary key,cnt_val counter,st_name text,book_name text,book_id int,date_of_issue timestamp);
+InvalidRequest: Error from server: code=2200 [Invalid query] message="Cannot mix counter and non counter columns in the same table"
+cqlsh:library> alter table lib_info primary key(st_name,book_name,book_id,date_of_issue);
+SyntaxException: line 1:21 no viable alternative at input 'primary' (alter table lib_info [primary] key...)
+cqlsh:library> drop table lib_info;
+InvalidRequest: Error from server: code=2200 [Invalid query] message="Table 'library.lib_info' doesn't exist"
+cqlsh:library> create table lib_info(st_id int primary key,cnt_val counter,st_name text primary key,book_name text primary key,book_id int primary key,date_of_issue timestamp primary key);
+InvalidRequest: Error from server: code=2200 [Invalid query] message="Multiple PRIMARY KEY specified for table 'lib_info' (exactly one required)"
+cqlsh:library> create table lib_info(st_id int,cnt_val counter,st_name text,book_name text,book_id int,date_of_issue timestamp,);
+InvalidRequest: Error from server: code=2200 [Invalid query] message="No PRIMARY KEY specifed for table 'lib_info' (exactly one required)"
+cqlsh:library> create table lib_info(st_id int,cnt_val counter,st_name text,book_name text,book_id int,date_of_issue timestamp,primary key(st_id,st_name,book_id,book_name,date_of_join));
+InvalidRequest: Error from server: code=2200 [Invalid query] message="Unknown column 'date_of_join' referenced in PRIMARY KEY for table 'lib_info'"
+cqlsh:library> create table lib_info(st_id int,cnt_val counter,st_name text,book_name text,book_id int,date_of_issue timestamp,primary key(st_id,st_name,book_id,book_name,date_of_issue));
+cqlsh:library> insert into lib_info(st_id,st_name,book_name,book_id,date_of_issue) values (1,'ram','r.d.sharma',777,'2020-05-18');
+InvalidRequest: Error from server: code=2200 [Invalid query] message="INSERT statements are not allowed on counter tables, use UPDATE instead"
+cqlsh:library> update lib_info set cnt_val=cnt_val+1 where st_id=1 and st_name='ram' and book_name='r.d.sharma' and book_id=777 and date_of_issue='2020-05-18';
+cqlsh:library> select * from lib_info;
+
+ st_id | st_name | book_id | book_name  | date_of_issue                   | cnt_val
+-------+---------+---------+------------+---------------------------------+---------
+     1 |     ram |     777 | r.d.sharma | 2020-05-18 07:00:00.000000+0000 |       1
+
+(1 rows)
+cqlsh:library> update lib_info set cnt_val=cnt_val+1 where st_id=2 and st_name='ash' and book_name='sss' and book_id=100 and date_of_issue='2020-08-18';
+cqlsh:library> update lib_info set cnt_val=cnt_val+1 where st_id=1 and st_name='ram' and book_name='sss' and book_id=100 and date_of_issue='2020-07-18';
+cqlsh:library> select * from lib_info;
+
+ st_id | st_name | book_id | book_name  | date_of_issue                   | cnt_val
+-------+---------+---------+------------+---------------------------------+---------
+     1 |     ram |     100 |        sss | 2020-07-18 07:00:00.000000+0000 |       1
+     1 |     ram |     777 | r.d.sharma | 2020-05-18 07:00:00.000000+0000 |       1
+     2 |     ash |     100 |        sss | 2020-08-18 07:00:00.000000+0000 |       1
+
+(3 rows)
+cqlsh:library> update lib_info set cnt_val=cnt_val+2 where st_id=112 and st_name='shyam' and book_name='bda' and book_id=100 and date_of_issue='2021-07-18';
+cqlsh:library> update lib_info set cnt_val=cnt_val+1 where st_id=1 and st_name='ram' and book_name='sss' and book_id=100 and date_of_issue='2020-07-18';
+cqlsh:library> select * from lib_info;
+
+ st_id | st_name | book_id | book_name  | date_of_issue                   | cnt_val
+-------+---------+---------+------------+---------------------------------+---------
+     1 |     ram |     100 |        sss | 2020-07-18 07:00:00.000000+0000 |       2
+     1 |     ram |     777 | r.d.sharma | 2020-05-18 07:00:00.000000+0000 |       1
+     2 |     ash |     100 |        sss | 2020-08-18 07:00:00.000000+0000 |       1
+   112 |   shyam |     100 |        bda | 2021-07-18 07:00:00.000000+0000 |       2
+
+(4 rows)
+cqlsh:library> copy lib_info(st_id,cnt_val,st_name,book_name,book_id,date_of_issue) to ~/Desktop/text.csv;
+Invalid syntax at char 73
+  copy lib_info(st_id,cnt_val,st_name,book_name,book_id,date_of_issue) to ~/Desktop/text.csv;
+                                                                          ^
+cqlsh:library> copy lib_info(st_id,cnt_val,st_name,book_name,book_id,date_of_issue) to /Desktop/text.csv;
+Improper copy command.
+cqlsh:library> copy lib_info(st_id,cnt_val,st_name,book_name,book_id,date_of_issue) to /home/abdc/Desktop/text.csv;
+Improper copy command.
+cqlsh:library> copy lib_info(st_id,cnt_val,st_name,book_name,book_id,date_of_issue) to '/home/abdc/Desktop/text.csv';
+Using 1 child processes
+
+Starting copy of library.lib_info with columns [st_id, cnt_val, st_name, book_name, book_id, date_of_issue].
+cqlshlib.copyutil.ExportProcess.write_rows_to_csv(): writing row
+cqlshlib.copyutil.ExportProcess.write_rows_to_csv(): writing row
+cqlshlib.copyutil.ExportProcess.write_rows_to_csv(): writing row
+cqlshlib.copyutil.ExportProcess.write_rows_to_csv(): writing row/s
+Processed: 4 rows; Rate:      30 rows/s; Avg. rate:       0 rows/s
+4 rows exported to 1 files in 12.944 seconds.
+cqlsh:library> 
