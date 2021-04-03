@@ -1,0 +1,26 @@
+> use students
+switched to db students
+> db.Stud.insert({ rollno: 10, name:'ABBA', age: 21, contactno: 8888222331, emailid: 'abba.cs@bmsce.ac.in' })
+WriteResult({ "nInserted" : 1 })
+> db.Stud.insert({ rollno: 11, name:'ABC', age: 21, contactno: 8888332331, emailid: 'abc.cs@bmsce.ac.in' })
+WriteResult({ "nInserted" : 1 })
+> db.Stud.insert({ rollno: 12, name:'BCA', age: 20, contactno: 9885332331, emailid: 'bca.cs@bmsce.ac.in' })
+WriteResult({ "nInserted" : 1 })
+> db.Stud.update({emailid: 'abba.cs@bmsce.ac.in'},{$set:{emailid: 'aba.cs@bmsce.ac.in'}})
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+> show collection Stud
+uncaught exception: Error: don't know how to show [collection] :
+shellHelper.show@src/mongo/shell/utils.js:1191:11
+shellHelper@src/mongo/shell/utils.js:819:15
+@(shellhelp2):1:1
+> db.Stud.find()
+{ "_id" : ObjectId("6068175a88ef433a89b7cdfd"), "rollno" : 10, "name" : "ABBA", "age" : 21, "contactno" : 8888222331, "emailid" : "aba.cs@bmsce.ac.in" }
+{ "_id" : ObjectId("6068176888ef433a89b7cdfe"), "rollno" : 11, "name" : "ABC", "age" : 21, "contactno" : 8888332331, "emailid" : "abc.cs@bmsce.ac.in" }
+{ "_id" : ObjectId("6068177488ef433a89b7cdff"), "rollno" : 12, "name" : "BCA", "age" : 20, "contactno" : 9885332331, "emailid" : "bca.cs@bmsce.ac.in" }
+> db.Stud.update({"roll_no": 10}, {$set: {"name": "ABC"}})
+WriteResult({ "nMatched" : 0, "nUpserted" : 0, "nModified" : 0 })
+> db.Stud.find()
+{ "_id" : ObjectId("6068175a88ef433a89b7cdfd"), "rollno" : 10, "name" : "ABBA", "age" : 21, "contactno" : 8888222331, "emailid" : "aba.cs@bmsce.ac.in" }
+{ "_id" : ObjectId("6068176888ef433a89b7cdfe"), "rollno" : 11, "name" : "ABC", "age" : 21, "contactno" : 8888332331, "emailid" : "abc.cs@bmsce.ac.in" }
+{ "_id" : ObjectId("6068177488ef433a89b7cdff"), "rollno" : 12, "name" : "BCA", "age" : 20, "contactno" : 9885332331, "emailid" : "bca.cs@bmsce.ac.in" }
+>
